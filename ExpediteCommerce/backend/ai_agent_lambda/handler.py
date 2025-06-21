@@ -18,28 +18,20 @@ def lambda_handler(event, context):
     if not check_api_key(event):
         return {"statusCode": 403, "body": "Forbidden"}
 
-    logger.info(f"----body start: {event}")
-
     body = json.loads(event.get("body") or "{}")
 
-    logger.info(f"----body: {body}")
-
     prompt = body.get("prompt")
-    logger.info(f"----prompt: {prompt}")
+    logger.info(f"prompt: {prompt}")
     if not prompt:
         return {"statusCode": 400, "body": "Missing prompt"}
 
     query_id = str(uuid.uuid4())
     # Store initial status in DynamoDB
     put_item(TABLE, {"query_id": query_id, "prompt": prompt, "status": "QUEUED"})
-    # # Enqueue the request
-    # sqs.send_message(
-    #     QueueUrl=QUEUE_URL,
-    #     MessageBody=json.dumps({"query_id": query_id, "prompt": prompt}),
-    # )
 
     MOCK_AWS = os.environ.get("MOCK_AWS", "false").lower() == "true"
     if MOCK_AWS:
+        # This block is for demo purposes only. for realworld testing, seperate mock project would be created.
         print("----MOCK_AWS_LocalStack---")
         sqs = boto3.client(
             "sqs",
