@@ -1,0 +1,256 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AI-Powered SaaS Backend
+Globals:
+  Function:
+    Timeout: 120
+    Runtime: python3.12
+    Environment:
+      Variables:
+        AI_QUERIES_TABLE: AIQueries
+        CUSTOMERS_TABLE: Customers
+        AI_SQS_QUEUE:
+          Ref: AIQueryQueue
+        MOCK_AWS: true
+Resources:
+  AIQueryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ai-query-queue
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ai-saas-user-pool
+      AutoVerifiedAttributes:
+      - email
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: ai-saas-client
+      UserPoolId:
+        Ref: UserPool
+      GenerateSecret: false
+  MyRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+  MyWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: MyWebACL
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: MyWebACL
+      Rules:
+      - Name: AWS-AWSManagedRulesCommonRuleSet
+        Priority: 1
+        OverrideAction:
+          None: {}
+        Statement:
+          ManagedRuleGroupStatement:
+            VendorName: AWS
+            Name: AWSManagedRulesCommonRuleSet
+        VisibilityConfig:
+          SampledRequestsEnabled: true
+          CloudWatchMetricsEnabled: true
+          MetricName: CommonRuleSet
+  WebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}::/restapis/${MyRestApi}/stages/prod
+      WebACLArn:
+        Fn::GetAtt:
+        - MyWebACL
+        - Arn
+  MyApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: prod
+      RestApiId:
+        Ref: MyRestApi
+      MethodSettings:
+      - ResourcePath: /*
+        HttpMethod: '*'
+        ThrottlingRateLimit: 10
+        ThrottlingBurstLimit: 2
+  AIAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ai_agent_lambda/handler.lambda_handler
+      CodeUri: AIAgentFunction
+      Policies:
+      - SQSSendMessagePolicy:
+          QueueName:
+            Fn::GetAtt:
+            - AIQueryQueue
+            - QueueName
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: AIQueriesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /ai/query
+            Method: post
+            RestApiId:
+              Ref: MyRestApi
+      Environment:
+        Variables:
+          JWT_SECRET: your_super_secret_key
+          JWT_ALGORITHM: HS256
+          JWT_EXP_DELTA_SECONDS: 3600
+    Metadata:
+      SamResourceId: AIAgentFunction
+  AIWorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ai_worker_lambda/handler.lambda_handler
+      CodeUri: AIWorkerFunction
+      Policies:
+      - SQSPollerPolicy:
+          QueueName:
+            Fn::GetAtt:
+            - AIQueryQueue
+            - QueueName
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: AIQueriesTable
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              Fn::GetAtt:
+              - AIQueryQueue
+              - Arn
+      Environment:
+        Variables:
+          JWT_SECRET: your_super_secret_key
+          JWT_ALGORITHM: HS256
+          JWT_EXP_DELTA_SECONDS: 3600
+    Metadata:
+      SamResourceId: AIWorkerFunction
+  AIQueryStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ai_query_status_lambda/handler.lambda_handler
+      CodeUri: AIQueryStatusFunction
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName:
+            Ref: AIQueriesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /ai/query/{id}
+            Method: get
+            RestApiId:
+              Ref: MyRestApi
+      Environment:
+        Variables:
+          JWT_SECRET: your_super_secret_key
+          JWT_ALGORITHM: HS256
+          JWT_EXP_DELTA_SECONDS: 3600
+    Metadata:
+      SamResourceId: AIQueryStatusFunction
+  CustomersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: customers_lambda/handler.lambda_handler
+      CodeUri: CustomersFunction
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName:
+            Ref: CustomersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /customers
+            Method: get
+            RestApiId:
+              Ref: MyRestApi
+      Environment:
+        Variables:
+          JWT_SECRET: your_super_secret_key
+          JWT_ALGORITHM: HS256
+          JWT_EXP_DELTA_SECONDS: 3600
+    Metadata:
+      SamResourceId: CustomersFunction
+  SalesforceSyncFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: salesforce_sync_lambda/handler.lambda_handler
+      CodeUri: SalesforceSyncFunction
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: CustomersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /salesforce/sync
+            Method: post
+            RestApiId:
+              Ref: MyRestApi
+      Environment:
+        Variables:
+          JWT_SECRET: your_super_secret_key
+          JWT_ALGORITHM: HS256
+          JWT_EXP_DELTA_SECONDS: 3600
+    Metadata:
+      SamResourceId: SalesforceSyncFunction
+  SalesforcePollFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: salesforce_poll_lambda/handler.lambda_handler
+      CodeUri: SalesforcePollFunction
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: CustomersTable
+      - SSMParameterReadPolicy:
+          ParameterName: /AISAAS/LastSalesforcePollTime
+      - Statement:
+        - Effect: Allow
+          Action:
+          - ssm:PutParameter
+          Resource:
+            Fn::Sub: arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/AISAAS/LastSalesforcePollTime
+      Events:
+        ScheduledPoll:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+    Metadata:
+      SamResourceId: SalesforcePollFunction
+  AIQueriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AIQueries
+      AttributeDefinitions:
+      - AttributeName: query_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: query_id
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  CustomersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Customers
+      AttributeDefinitions:
+      - AttributeName: Id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: Id
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST

@@ -1,0 +1,5 @@
+boto3
+openai==0.28.0
+requests
+PyJWT
+python-dotenv 
