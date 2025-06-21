@@ -117,11 +117,10 @@ This project includes a comprehensive mock testing suite that validates the enti
 3.  Ensure you have a local DynamoDB instance (like [LocalStack](https://localstack.cloud/) or DynamoDB Local) running if you want to test against a "real" mock database. The tests are configured to use the endpoint `http://127.0.0.1:4566`.
 
 ### Running Tests
-The test suite is organized into two main parts:
 
-1.  **End-to-End Mock Test (`backend/tests/mock_test_backend.py`):**
-    - This script tests all major flows together.
-    - Run it directly: `python backend/tests/mock_test_backend.py`
+**End-to-End Mock Test (`backend/tests/mock_test_backend.py`):**
+  - This script tests all major flows together.
+  - Run it directly: `python backend/tests/mock_test_backend.py`
 
 
 ---
