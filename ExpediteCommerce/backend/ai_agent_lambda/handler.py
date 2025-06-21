@@ -19,9 +19,7 @@ def lambda_handler(event, context):
         return {"statusCode": 403, "body": "Forbidden"}
 
     body = json.loads(event.get("body") or "{}")
-
     prompt = body.get("prompt")
-    logger.info(f"prompt: {prompt}")
     if not prompt:
         return {"statusCode": 400, "body": "Missing prompt"}
 
