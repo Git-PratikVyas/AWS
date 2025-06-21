@@ -146,9 +146,3 @@ The test suite is organized into two main parts:
 - Deploy backend with AWS SAM/CloudFormation
 - Set environment variables for OpenAI and Salesforce credentials
 - Run `npm install` and `npm run serve` in `frontend/`
-
-## Improvements
-- Use Cognito/JWT for auth
-- Add SQS for async AI processing
-- Use Salesforce Streaming API for real-time sync
-- Add more granular RBAC and logging 
