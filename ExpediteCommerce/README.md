@@ -8,6 +8,8 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
 
 [▶️ Watch Demo Video](diagram/DemoVideo.mkv)
 
+
+[![Demo Video](diagram/demo_thumbnail.png)](diagram/DemoVideo.mkv)
 ---
 
 ## Core Features
