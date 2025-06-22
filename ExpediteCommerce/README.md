@@ -4,6 +4,12 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
 
 ---
 
+## Demo Video
+
+[▶️ Watch Demo Video](diagram/DemoVideo.mkv)
+
+---
+
 ## Core Features
 
 - **Asynchronous AI Processing:** User queries are handled asynchronously using SQS and Lambda for a responsive user experience.
