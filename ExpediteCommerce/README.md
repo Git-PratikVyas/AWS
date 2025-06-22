@@ -23,30 +23,32 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
 ```
 .
 ├── backend/
+│   ├── .aws-sam/              # AWS SAM build artifacts
 │   ├── ai_agent_lambda/
-│   ├── ai_worker_lambda/
 │   ├── ai_query_status_lambda/
+│   ├── ai_worker_lambda/
 │   ├── customers_lambda/
+│   ├── salesforce_poll_lambda/
 │   ├── salesforce_sync_lambda/
-│   ├── salesforce_poll_lambda/  
+│   ├── tests/
+│   │   └── mock_test_backend.py # Mock Test (backend)
 │   │
 │   ├── common/
-│   │   ├── dynamodb.py
-│   │   ├── openai_agent.py
-│   │   ├── salesforce.py
 │   │   ├── auth.py
-│   │   └── logging.py
+│   │   ├── dynamodb.py
+│   │   ├── logging.py
+│   │   ├── openai_agent.py
+│   │   └── salesforce.py
 │   │
-│   ├── tests/                     
-│   │   ├── mock_test_backend.py
-│   │
-│   ├── requirements.txt
-│   └── template.yaml
+│   ├── requirements.txt       # Python dependencies
+│   └── template.yaml          # AWS SAM infrastructure definition
 │
 └── frontend/
+    ├── node_modules/          # (Ignored by .gitignore)
     ├── public/
     │   └── index.html
     ├── src/
+    │   ├── assets/
     │   ├── components/
     │   │   ├── AIAgent.vue
     │   │   ├── Customers.vue
@@ -55,9 +57,14 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
     │   ├── stores/
     │   │   └── auth.js
     │   ├── App.vue
+    │   ├── main.css
     │   └── main.js
-    └── package.json
+    ├── .gitignore             # Git ignore rules
+    ├── package.json           # Frontend dependencies
+    ├── package-lock.json      # Exact dependency versions
+    └── vue.config.js          # Vue/Webpack configuration
 ```
+
 
 ---
 
