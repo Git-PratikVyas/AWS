@@ -20,51 +20,50 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
 
 ## Project Structure
 
+## Project Structure
+
+## Project Structure
+
 ```
 .
 ├── backend/
-│   ├── .aws-sam/              # AWS SAM build artifacts
-│   ├── ai_agent_lambda/
-│   ├── ai_query_status_lambda/
-│   ├── ai_worker_lambda/
-│   ├── customers_lambda/
-│   ├── salesforce_poll_lambda/
-│   ├── salesforce_sync_lambda/
+│   ├── ai_agent_lambda/           # Handles AI query submission (enqueue)
+│   ├── ai_query_status_lambda/    # Returns AI query status/results
+│   ├── ai_worker_lambda/          # Processes AI queries from SQS
+│   ├── customers_lambda/          # Customer data API
+│   ├── salesforce_poll_lambda/    # Scheduled Salesforce sync
+│   ├── salesforce_sync_lambda/    # Manual (admin) Salesforce sync
 │   ├── tests/
-│   │   └── mock_test_backend.py # Mock Test (backend)
-│   │
-│   ├── common/
-│   │   ├── auth.py
-│   │   ├── dynamodb.py
-│   │   ├── logging.py
-│   │   ├── openai_agent.py
-│   │   └── salesforce.py
-│   │
-│   ├── requirements.txt       # Python dependencies
-│   └── template.yaml          # AWS SAM infrastructure definition
+│   │   └── mock_test_backend.py   # End-to-end backend mock tests
+│   ├── common/                    # Shared utilities:
+│   │   ├── auth.py                # JWT & RBAC logic
+│   │   ├── dynamodb.py            # DynamoDB helpers
+│   │   ├── logging.py             # Logging setup
+│   │   ├── openai_agent.py        # OpenAI integration
+│   │   └── salesforce.py          # Salesforce integration
+│   ├── requirements.txt           # Python dependencies
+│   └── template.yaml              # AWS SAM/CloudFormation template
 │
 └── frontend/
-    ├── node_modules/          # (Ignored by .gitignore)
     ├── public/
-    │   └── index.html
+    │   └── index.html                 # Main HTML entry point
     ├── src/
-    │   ├── assets/
-    │   ├── components/
-    │   │   ├── AIAgent.vue
-    │   │   ├── Customers.vue
-    │   │   ├── Dashboard.vue
-    │   │   └── Login.vue
+    │   ├── assets/                    # Static assets (images, icons, etc.)
+    │   ├── components/                # Vue components
+    │   │   ├── AIAgent.vue            # AI query interface component
+    │   │   ├── Customers.vue          # Customer list/view component
+    │   │   ├── Dashboard.vue          # Main dashboard component
+    │   │   └── Login.vue              # Login/authentication component
     │   ├── stores/
-    │   │   └── auth.js
-    │   ├── App.vue
-    │   ├── main.css
-    │   └── main.js
-    ├── .gitignore             # Git ignore rules
-    ├── package.json           # Frontend dependencies
-    ├── package-lock.json      # Exact dependency versions
-    └── vue.config.js          # Vue/Webpack configuration
+    │   │   └── auth.js                # Authentication state management
+    │   ├── App.vue                    # Root Vue component
+    │   ├── main.css                   # Global styles
+    │   └── main.js                    # App entry point and bootstrapping
+    ├── .gitignore                     # Git ignore rules
+    ├── package.json                   # Frontend dependencies
+    ├── package-lock.json              # Exact dependency versions
+    └── vue.config.js                  # Vue/Webpack
 ```
-
 
 ---
 
