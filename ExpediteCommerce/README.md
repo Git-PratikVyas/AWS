@@ -16,7 +16,7 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
 ---
 
 ## Architecture Diagram
-![Architecture Diagram](diagram/diagram.png)
+<img src="diagram/diagram.png" alt="Architecture Diagram" width="600"/>
 
 
 ## Project Structure
