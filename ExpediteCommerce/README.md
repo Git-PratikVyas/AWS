@@ -75,6 +75,8 @@ A scalable, serverless SaaS platform integrating AWS Lambda, SQS, DynamoDB, Open
 - **`salesforce_sync_lambda`**: Handles `/salesforce/sync` POST requests. **Admin-only endpoint.** Manually triggers a full sync of customer data from Salesforce to DynamoDB.
 - **`salesforce_poll_lambda`**: Triggered by an EventBridge schedule (e.g., every hour). Polls Salesforce for recently modified records and updates them in DynamoDB.
 
+Check [Project.pdf](diagram/Project.pdf) for more details.
+
 ### Common Utilities (`backend/common/`)
 
 - **`auth.py`**: Handles JWT decoding and RBAC logic (e.g., `is_admin` check).
