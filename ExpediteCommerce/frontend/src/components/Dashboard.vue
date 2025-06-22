@@ -2,13 +2,13 @@
   <div class="dashboard">
     <header class="dashboard-header">
       <h1>AI-Powered SaaS Dashboard</h1>
-      <div v-if="authStore.isLoggedIn" class="user-info">
-        <span>Welcome, {{ authStore.userEmail }}</span>
-        <button @click="authStore.logout()" class="logout-button">Logout</button>
+      <div v-if="isLoggedIn" class="user-info">
+        <span>Welcome, {{ userEmail }}</span>
+        <button @click="logout()" class="logout-button">Logout</button>
       </div>
     </header>
 
-    <div v-if="!authStore.isLoggedIn" class="login-container">
+    <div v-if="!isLoggedIn" class="login-container">
       <h2>Please log in</h2>
       <p>Since a full Cognito UI is not implemented, use these buttons to simulate login.</p>
       <div class="mock-login-buttons">
@@ -18,7 +18,7 @@
     </div>
 
     <div v-else>
-      <div class="admin-actions" v-if="authStore.isAdmin">
+      <div class="admin-actions" v-if="isAdmin">
         <h2>Admin Panel</h2>
         <button @click="triggerSalesforceSync">Trigger Manual Salesforce Sync</button>
         <p v-if="syncMessage" class="sync-message">{{ syncMessage }}</p>
@@ -33,13 +33,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
+import { ref, reactive } from 'vue';
 import AIAgent from './AIAgent.vue';
 import Customers from './Customers.vue';
 
-const authStore = useAuthStore();
+// Simple reactive state management
+const authState = reactive({
+  isLoggedIn: false,
+  userEmail: '',
+  isAdmin: false,
+  idToken: ''
+});
+
 const syncMessage = ref('');
+
+// Computed properties
+const isLoggedIn = () => authState.isLoggedIn;
+const userEmail = () => authState.userEmail;
+const isAdmin = () => authState.isAdmin;
 
 // --- MOCK LOGIN FUNCTIONALITY ---
 // In a real application, you would get this token from Cognito after a successful login.
@@ -47,11 +58,24 @@ const mockAdminToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY
 const mockUserToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ODc2NTQzMjEiLCJuYW1lIjoiUmVndWxhciBVc2VyIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiY29nbml0bzpncm91cHMiOlsidXNlcnMiXSwiaWF0IjoxNTE2MjM5MDIyfQ.Jv6Vj-1q_zV-c3b-K5l-jH-n5N-yX_tY-rP3oE-d8aQ';
 
 function mockLoginAsAdmin() {
-  authStore.login(mockAdminToken);
+  authState.isLoggedIn = true;
+  authState.userEmail = 'admin@example.com';
+  authState.isAdmin = true;
+  authState.idToken = mockAdminToken;
 }
 
 function mockLoginAsUser() {
-  authStore.login(mockUserToken);
+  authState.isLoggedIn = true;
+  authState.userEmail = 'user@example.com';
+  authState.isAdmin = false;
+  authState.idToken = mockUserToken;
+}
+
+function logout() {
+  authState.isLoggedIn = false;
+  authState.userEmail = '';
+  authState.isAdmin = false;
+  authState.idToken = '';
 }
 // --- END MOCK LOGIN ---
 
@@ -61,7 +85,7 @@ async function triggerSalesforceSync() {
     const response = await fetch('/api/salesforce/sync', { // Assuming API gateway is proxied
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authStore.idToken}`
+        'Authorization': `Bearer ${authState.idToken}`
       }
     });
     const data = await response.json();
